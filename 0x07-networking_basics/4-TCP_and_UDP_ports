@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Run netstat and filter the output for listening sockets
+netstat_output=$(netstat -tuln)
+
+printf "%-10s %-20s %-30s\n" "PID" "Program" "Port"
+
+while IFS= read -r line; do
+    protocol=$(echo "$line" | awk '{print $1}')
+    local_address=$(echo "$line" | awk '{print $4}')
+    pid_program=$(echo "$line" | awk '{print $NF}')
+
+    if [[ $line == *LISTEN* ]]; then
+        # Extract the PID and Program name
+        pid=$(echo "$pid_program" | awk -F/ '{print $1}')
+        program=$(echo "$pid_program" | awk -F/ '{print $2}')
+
+        printf "%-10s %-20s %-30s\n" "$pid" "$program" "$local_address"
+    fi
+done <<< "$netstat_output"
